@@ -1,20 +1,32 @@
 const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
+
 const app = express();
-const http = require("http");
-const server = http.createServer(app);
-const { Server } = require("socket.io");
-const io = new Server(server);
+require("dotenv").config();
 
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
-});
+const { PORT, DB_HOST } = process.env;
 
-io.on("connection", (socket) => {
-  socket.on("chat message", (msg) => {
-    console.log("message: " + msg);
-  });
-});
+app.use(cors());
+app.use(express.json());
 
-server.listen(3000, () => {
-  console.log("listening on *:3000");
+const connectDB = async () => {
+  try {
+    const db = await mongoose.connect(DB_HOST, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    const { port, host, name } = db.connection;
+    console.log(
+      `MongoDB connected on port ${port}, on ${host}, name - ${name}`
+    );
+  } catch (error) {
+    console.log(`${error}`);
+  }
+};
+(async () => {
+  await connectDB();
+})();
+app.listen(PORT, () => {
+  console.log(`Server Started on Port ${PORT}`);
 });
